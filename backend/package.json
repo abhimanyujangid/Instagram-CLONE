@@ -1,0 +1,46 @@
+{
+  "name": "insta-backend",
+  "version": "1.0.0",
+  "description": "This  is a clone for made for instagram clone project",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node /src/index.js",
+    "dev": "nodemon src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/abhimanyujangid/Instagram-CLONE.git"
+  },
+  "keywords": [
+    "node.js",
+    "express",
+    "mongodb"
+  ],
+  "author": "Abhimanyu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/abhimanyujangid/Instagram-CLONE/issues"
+  },
+  "homepage": "https://github.com/abhimanyujangid/Instagram-CLONE#readme",
+  "devDependencies": {
+    "nodemon": "^3.1.9",
+    "prettier": "^3.4.2"
+  },
+  "dependencies": {
+    "bcrypt": "^5.1.1",
+    "cloudinary": "^2.5.1",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "info": "^0.0.6-beta.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.3",
+    "mongoose-aggregate-paginate-v2": "^1.1.2",
+    "morgan": "^1.10.0",
+    "multer": "^1.4.5-lts.1",
+    "winston": "^3.17.0"
+  }
+}
