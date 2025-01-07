@@ -50,4 +50,4 @@ const deleteCloudinaryImage = async (publicId) => {
     }
 };
 
-export  {uploadOnCloudinary, deleteCloudinaryImage};
+export  {uploadOnCloudinary, deleteCloudinaryImage};   
