@@ -103,13 +103,16 @@ const getUserPosts = asyncHandler(async (req, res) => {
 //=====================DELETE POST=====================
 const deletePost = asyncHandler(async (req, res) => {
     try {
+        const { _id: userId } = req.user;
         const { postId } = req.params;
         const post = await Post.findById(postId);
         if (!post) {
             throw new ApiError(404, "Post not found.");
         }
-        await post.remove();
-        await User.findByIdAndUpdate(post.author, { $pull: { posts: post._id } });
+        if (post.author.toString() !== userId) {
+            throw new ApiError(403, "You are not authorized to delete this post.");
+        }
+        await post.findByIdAndDelete();
         res.status(200).json(new ApiResponse(200, "Post deleted successfully"));
     } catch (error) {
         throw new ApiError(500, "Error while deleting post");
@@ -125,18 +128,58 @@ const LikeOrUnLikePost = asyncHandler(async (req, res) => {
             throw new ApiError(404, "Post not found.");}
         if (post.likes.includes(userId)) {
             await post.updateOne({ $pull: { likes: userId } });
-            res.status(200).json(new ApiResponse(200, "Post unliked successfully"));
+            await post.save();
+            //Make for socket io
+
+            res.status(200).json(new ApiResponse(200, "Post unliked "));
         }
         else {
             await post.updateOne({ $addToSet: { likes: userId } });
-            res.status(200).json(new ApiResponse(200, "Post liked successfully"));
+            await post.save();
+            //Make for socket io
+            res.status(200).json(new ApiResponse(200, "Post liked "));
         }
     } catch (error) {
         throw new ApiError(500, "Error while liking/unliking post");
     }
 });
 //=====================ADD COMMENT=====================
-const addComment = asyncHandler(async (req, res) => {});
+const addComment = asyncHandler(async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { _id: userId } = req.user;
+        const { text } = req.body;
+        const post = await Post.findById(postId);
+        if (!post) {
+            throw new ApiError(404, "Post not found.");
+        }
+        const comment = await Comment.create({ author: userId, text, post: postId }).populate({ path: "author", select: "username, avatar" });
+        await comment.save();
+        if (!comment) {
+            throw new ApiError(500, "Error while adding comment");
+        }
+
+        await post.push({ comments: comment._id });
+        await post.save();
+        res.status(200).json(new ApiResponse(200, "Comment added successfully"));
+    } catch (error) {
+        throw new ApiError(500, "Error while adding comment");
+        
+    }
+});
+//=====================GET POST COMMENTS===================
+const getPostComments = asyncHandler(async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const post = await Post.findById(postId).populate({ path: "comments", populate: { path: "author", select: "username, avatar" } });
+        if (!post) {
+            throw new ApiError(404, "Post not found.");
+        }
+        res.status(200).json(new ApiResponse(200, "Post comments", post.comments));
+    } catch (error) {
+        throw new ApiError(500, "Error while fetching comments");
+    }
+});
 //=====================DELETE COMMENT=====================
 const deleteComment = asyncHandler(async (req, res) => {});
 

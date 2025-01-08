@@ -27,7 +27,6 @@ const generateAccessAndRefreshToken = async (userId) => {
       throw new ApiError(500, "Error generating access and refresh tokens.");
     }
   };
-
 //=====================REGISTER USER=====================
 const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, password, username } = req.body;
@@ -223,6 +222,7 @@ const logout = asyncHandler(async (req, res) => {
 });
 //=====================FORGOT PASSWORD=====================
 const forgotPassword = asyncHandler(async (req, res) => { });
+
 //=====================updateAccountDetails=====================  
 const updateUserProfile = asyncHandler(async (req, res) => {
     const { fullName, email, username, bio, gender } = req.body;
