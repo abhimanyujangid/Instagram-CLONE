@@ -62,7 +62,7 @@ const uploadOnCloudinary = async (localFilePath) => {
                 timeout: 60000,
                 quality: "auto:best",
                 fetch_format: "auto",
-                folder: process.env.CLOUDINARY_FOLDER || 'uploads' // Optional folder setting
+                folder: process.env.CLOUDINARY_FOLDER || 'uploads' 
             };
 
             const uploadStream = cloudinary.uploader.upload_stream(
