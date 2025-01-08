@@ -4,8 +4,9 @@ import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import logger from "../logger.js";
 import { uploadOnCloudinary, deleteCloudinaryImage } from "../utils/cloudinary.js";
+import Post from "../models/post.models.js";
 
-//============GENERATE ACCESS TOKEN & REFRESH TOKEN=====
+//===============GENERATE ACCESS TOKEN & REFRESH TOKEN=====
 const generateAccessAndRefreshToken = async (userId) => {
     try {
       const user = await User.findById(userId);
@@ -42,62 +43,79 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if (existingUser) {
-        res.status(400).json(new ApiResponse(400,{},"User already exists"));
+        return res.status(400).json(new ApiResponse(400,  "User already exists"));
     }
 
-    // Validate and upload avatar and cover image
-    const avatarLocalPath = req.files?.avatar?.[0]?.path;
-    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
-
-    if (!avatarLocalPath || !coverImageLocalPath) {
-        throw new ApiError(400, "Please provide both avatar and cover image.");
-    }
-
+    // Initialize avatar and coverImage variables
     let avatar, coverImage;
 
-    try {
-        avatar = await uploadOnCloudinary(avatarLocalPath);
-    } catch (error) {
-        throw new ApiError(500, "Error uploading avatar image to Cloudinary.");
+    // Handle avatar upload if provided
+    const avatarLocalPath = req.files?.avatar?.[0]?.path;
+    if (avatarLocalPath) {
+        try {
+            avatar = await uploadOnCloudinary(avatarLocalPath);
+            if (!avatar?.secure_url) {
+                throw new ApiError(500, "Failed to upload avatar image to Cloudinary.");
+            }
+        } catch (error) {
+            throw new ApiError(500, "Error uploading avatar image to Cloudinary.");
+        }
+    }
+
+    // Handle cover image upload if provided
+    const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
+    if (coverImageLocalPath) {
+        try {
+            coverImage = await uploadOnCloudinary(coverImageLocalPath);
+            if (!coverImage?.secure_url) {
+                throw new ApiError(500, "Failed to upload cover image to Cloudinary.");
+            }
+        } catch (error) {
+            // Clean up avatar if already uploaded
+            if (avatar?.public_id) {
+                await deleteCloudinaryImage(avatar.public_id);
+            }
+            throw new ApiError(500, "Error uploading cover image to Cloudinary.");
+        }
     }
 
     try {
-        coverImage = await uploadOnCloudinary(coverImageLocalPath);
-    } catch (error) {
-        throw new ApiError(500, "Error uploading cover image to Cloudinary.");
-    }
-
-    if (!avatar?.secure_url || !coverImage?.secure_url) {
-        throw new ApiError(500, "Failed to upload images to Cloudinary.");
-    }
-
-    try {
-        // Create user
+        // Create user with optional images
         const user = await User.create({
             fullName,
             email,
             password,
             username: username.toLowerCase(),
-            avatar: avatar.secure_url,
-            coverImage: coverImage.secure_url
+            avatar: avatar?.secure_url || "", 
+            coverImage: coverImage?.secure_url || "" 
         });
 
         const createdUser = await User.findById(user._id).select("-password -refreshToken");
 
         if (!createdUser) {
+            // Clean up uploaded images if user creation fails
+            if (avatar?.public_id) {
+                await deleteCloudinaryImage(avatar.public_id);
+            }
+            if (coverImage?.public_id) {
+                await deleteCloudinaryImage(coverImage.public_id);
+            }
             throw new ApiError(500, "User creation failed.");
         }
 
-        res.status(201).json(new ApiResponse(201, "User created successfully", createdUser));
+        return res.status(201).json(
+            new ApiResponse(201, createdUser, "User created successfully")
+        );
+
     } catch (error) {
-        if (avatar) {
+        // Clean up any uploaded images if there's an error
+        if (avatar?.public_id) {
             await deleteCloudinaryImage(avatar.public_id);
         }
-        if (coverImage) {
+        if (coverImage?.public_id) {
             await deleteCloudinaryImage(coverImage.public_id);
         }
-        throw new ApiError(500, "User registration failed. And images were not uploaded.");
-
+        throw new ApiError(500, "User registration failed.");
     }
 });
 
@@ -224,11 +242,14 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         try {
             const avatar = await uploadOnCloudinary(avatarLocalPath);
             if (!avatar?.secure_url) {
-                throw new Error("Error uploading avatar.");
+                throw new ApiError(400, "Avatar upload failed. Please try again.");
             }
             updateObj.avatar = avatar.secure_url;
         } catch (error) {
-            throw new ApiError(500, "Error uploading avatar image.");
+            throw new ApiError(
+                500, 
+                error.message || "Error uploading avatar image. Please try again."
+            );
         }
     }
 
@@ -286,7 +307,6 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
     res.status(200).json(new ApiResponse(200, user, "User profile updated successfully."));
 });
-
 
 //=====================UPDATE PASSWORD=====================
 const updatePassword = asyncHandler(async (req, res) => {
@@ -378,21 +398,82 @@ const getUser = asyncHandler(async (req, res) => {
 //=====================FOLLOW OR UNFOLLOW USER=====================
 const followOrUnfollowUser = asyncHandler(async (req, res) => {
     const { userId } = req.params;
-    const { _id: followerId } = req.user;
+    const followerId = req.user._id;
 
+    // Input validation
     if (!userId) {
-        throw new ApiError(400, "User ID is required.");
+        throw new ApiError(400, "User ID is required");
     }
-    if(userId === followerId){
-        throw new ApiError(400, "You can't follow or unfollow yourself.");
-    }
-    const user = await User.findById(userId);
-    if (!user || !followerId) {
-        throw new ApiError(404, "User not found.");
-    }
-    const isFollowing = user.followers.includes(followerId);
 
+    if (userId === followerId.toString()) {
+        throw new ApiError(400, "You can't follow or unfollow yourself");
+    }
 
+    // Check if target user exists
+    const userToFollow = await User.findById(userId);
+    if (!userToFollow) {
+        throw new ApiError(404, "User to follow/unfollow not found");
+    }
+
+    // Get follower user
+    const followerUser = await User.findById(followerId);
+    if (!followerUser) {
+        throw new ApiError(404, "Follower user not found");
+    }
+
+    // Check if already following
+    const isFollowing = userToFollow.followers.includes(followerId);
+
+    try {
+        if (isFollowing) {
+            // Unfollow operation
+            await User.findByIdAndUpdate(
+                userId,
+                { $pull: { followers: followerId } },
+                { new: true, runValidators: true }
+            );
+
+            await User.findByIdAndUpdate(
+                followerId,
+                { $pull: { following: userId } },
+                { new: true, runValidators: true }
+            );
+
+            return res.status(200).json(
+                new ApiResponse(
+                    200,
+                    {},
+                    `Successfully unfollowed ${userToFollow.username}`
+                )
+            );
+        } else {
+            // Follow operation
+            await User.findByIdAndUpdate(
+                userId,
+                { $addToSet: { followers: followerId } },
+                { new: true, runValidators: true }
+            );
+
+            await User.findByIdAndUpdate(
+                followerId,
+                { $addToSet: { following: userId } },
+                { new: true, runValidators: true }
+            );
+
+            return res.status(200).json(
+                new ApiResponse(
+                    200,
+                    {},
+                    `Successfully followed ${userToFollow.username}`
+                )
+            );
+        }
+    } catch (error) {
+        throw new ApiError(
+            500,
+            "Error while processing follow/unfollow operation"
+        );
+    }
 });
 
 
@@ -403,12 +484,11 @@ export {
     logout,
     deactivateUser,
     reactivateAccount,
-    updateAccountDetails,
     updatePassword,
     getCurrentUser,
     getAllUsers,
     getUser,
-    updateAvatarAndCoverImage,
     followOrUnfollowUser,
-    forgotPassword
+    forgotPassword,
+    updateUserProfile,
 };
