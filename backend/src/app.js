@@ -44,9 +44,11 @@ app.use(
 // import routes
 import healthCheckRouter from './routes/healthCheck.routes.js';
 import userRouter from './routes/user.routes.js';
+import postRouter from './routes/post.routes.js';
 // routes
 app.use('/api/v1/healthChecked', healthCheckRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/posts', postRouter);
 
 
 // Error handling middleware

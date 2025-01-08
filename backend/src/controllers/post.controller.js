@@ -1,4 +1,4 @@
-import Post from '../models/post.model';
+import Post from '../models/post.models.js';
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.models.js";
@@ -7,50 +7,38 @@ import logger from "../logger.js";
 import { uploadOnCloudinary, deleteCloudinaryImage } from "../utils/cloudinary.js";
 import sharp from "sharp";
 import path from "path";
+import Comment from '../models/comment.model.js';
 
 //=====================ADD NEW POST=====================
-const addNewPost = asyncHandler(async (req, res) => {
+const createPost = asyncHandler(async (req, res) => {
     try {
         const { caption, description } = req.body;
-        const ImageLocalPath = req.files?.Image?.[0]?.path;
+        const imageLocalPath = req.files?.image?.[0]?.path;
 
-        if (!ImageLocalPath) {
+        if (!imageLocalPath) {
             throw new ApiError(400, "Image is required.");
         }
 
-        // Path for the optimized image
-        const optimizedImagePath = path.join(
-            path.dirname(ImageLocalPath),
-            `optimized-${Date.now()}.jpeg`
-        );
+        let image;
 
-        // Optimize the image for Instagram (resize to 1080x1080 and compress)
         try {
-            await sharp(ImageLocalPath)
-                .resize(1080, 1080, { fit: "cover" })
-                .jpeg({ quality: 80 })
-                .toFile(optimizedImagePath);
-        } catch (error) {
-            throw new ApiError(500, "Error processing image with Sharp.");
-        }
-
-        let Image;
-        try {
-            // Upload optimized image to Cloudinary
-            Image = await uploadOnCloudinary(optimizedImagePath);
-            if (!Image?.secure_url) {
+            // Upload the image to Cloudinary
+            image = await uploadOnCloudinary(imageLocalPath);
+            if (!image?.secure_url) {
                 throw new ApiError(500, "Failed to upload image to Cloudinary.");
             }
         } catch (error) {
-            if (Image?.public_id) {
-                await deleteCloudinaryImage(Image.public_id);
-            }
             throw new ApiError(500, "Error uploading image to Cloudinary.");
         }
 
         const { _id: userId } = req.user;
         const user = await User.findById(userId);
+
         if (!user) {
+            // Cleanup Cloudinary image if user is not found
+            if (image?.public_id) {
+                await deleteCloudinaryImage(image.public_id);
+            }
             throw new ApiError(404, "User not found.");
         }
 
@@ -58,25 +46,38 @@ const addNewPost = asyncHandler(async (req, res) => {
             author: user._id,
             caption: caption || "",
             description: description || "",
-            image: Image.secure_url,
+            image: image.secure_url,
             likes: [],
             comments: [],
         });
+
         if (!post) {
+            // Cleanup Cloudinary image if post creation fails
+            if (image?.public_id) {
+                await deleteCloudinaryImage(image.public_id);
+            }
             throw new ApiError(500, "Error while creating post.");
-        }     
+        }
 
-        await post.populate({ path: "author", select: "-password -refreshToken" }).execPopulate();
-        
-        await User.findByIdAndUpdate(userId, { $addToSet: { posts: post._id } });
-        
+        // Populate the post author field
+        await post.populate({ path: "author", select: "username avatar" });
 
-        res.status(201).json(new ApiResponse(201, "Post created successfully", post));
+        // Add the post ID to the user's posts array
+        const updatedUser = await User.findByIdAndUpdate(userId, { $addToSet: { posts: post._id } });
+
+        res.status(201).json(new ApiResponse(201, "Post created successfully", updatedUser));
     } catch (error) {
         logger.error(error.message);
-        throw new ApiError(500, "Error while creating post");
+
+        // Cleanup Cloudinary image in case of any error
+        if (image?.public_id) {
+            await deleteCloudinaryImage(image.public_id);
+        }
+
+        throw new ApiError(500, "Error while creating post.");
     }
 });
+
 //=====================GET ALL POSTS=====================
 const getAllPosts = asyncHandler(async (req, res) => {
     try {
@@ -112,7 +113,10 @@ const deletePost = asyncHandler(async (req, res) => {
         if (post.author.toString() !== userId) {
             throw new ApiError(403, "You are not authorized to delete this post.");
         }
-        await post.findByIdAndDelete();
+        await post.deleteOne();
+        await User.findByIdAndUpdate(userId, { $pull: { posts: post._id }, $pull: { bookmarks: post._id }}, { new: true });
+        await Comment.deleteMany({ post: post._id });
+
         res.status(200).json(new ApiResponse(200, "Post deleted successfully"));
     } catch (error) {
         throw new ApiError(500, "Error while deleting post");
@@ -153,11 +157,13 @@ const addComment = asyncHandler(async (req, res) => {
         if (!post) {
             throw new ApiError(404, "Post not found.");
         }
-        const comment = await Comment.create({ author: userId, text, post: postId }).populate({ path: "author", select: "username, avatar" });
-        await comment.save();
+        const comment = await Comment.create({ author: userId, text, post: postId });
+        comment.populate({ path: "author", select: "username, avatar" });
         if (!comment) {
-            throw new ApiError(500, "Error while adding comment");
+            throw new ApiError(500, "Error while adding comment it not found.");
         }
+        await comment.save();
+       
 
         await post.push({ comments: comment._id });
         await post.save();
@@ -181,11 +187,64 @@ const getPostComments = asyncHandler(async (req, res) => {
     }
 });
 //=====================DELETE COMMENT=====================
-const deleteComment = asyncHandler(async (req, res) => {});
+const deleteComment = asyncHandler(async (req, res) => {
+    try {
+        const { _id: userId } = req.user;
+        const { commentId } = req.params;
+        const comment = await Comment.findOneAndDelete({ _id: commentId, author: userId });
+        if (!comment) {
+            throw new ApiError(404, "Comment not found or unauthorized to delete.");
+        }
+        await Post.findByIdAndUpdate(comment.post, { $pull: { comments: comment._id } });      
+        res.status(200).json(new ApiResponse(200, "Comment deleted successfully"));
+    } catch (error) {
+        throw new ApiError(500, "Error while deleting comment");
+    }
+});
+//=====================BOOKMARK POST=====================
+const bookmarkPost = asyncHandler(async (req, res) => {
+    try {
+        const { postId } = req.params;
+        const { _id: userId } = req.user;
+        const post = await Post.findById(postId);
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new ApiError(404, "User not found.");
+        }
+        if (!post) {
+            throw new ApiError(404, "Post not found.");
+        }
+        if (user.bookmarks.includes(postId)) {
+            await user.updateOne({ $pull: { bookmarks: postId } });
+            await user.save();
+            return res.status(200).json(new ApiResponse(200, "Post unBookmarked successfully"));
+        }
+        else {
+            await user.updateOne({ $addToSet: { bookmarks: postId } });
+            await user.save();
+            return res.status(200).json(new ApiResponse(200, "Post Bookmarked successfully"));
+
+        }
+    } catch (error) {
+        throw new ApiError(500, "Error while bookmarking post");
+        
+    }
+});
 
 
 
 
 
 //=====================EXPORT FUNCTIONS=====================
-export  {addNewPost, deletePost, LikeOrUnLikePost, addComment, deleteComment};
+export {
+    createPost,
+    deletePost,
+    LikeOrUnLikePost,
+    addComment,
+    getPostComments,
+    deleteComment,
+    bookmarkPost,
+    getAllPosts,
+    getUserPosts
+};
+
