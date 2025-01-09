@@ -2,7 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import logger from "./logger.js";
 import morgan from "morgan";
-import cookieParser from "cookie-parser"
 import errorHandler from "./middlewares/error.middlewares.js";
 
 const app = express();
@@ -45,12 +44,15 @@ app.use(
 import healthCheckRouter from './routes/healthCheck.routes.js';
 import userRouter from './routes/user.routes.js';
 import postRouter from './routes/post.routes.js';
+import messageRouter from './routes/message.routes.js';
+
 // routes
 app.use('/api/v1/healthChecked', healthCheckRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/posts', postRouter);
+app.use('/api/v1/messages', messageRouter);
 
 
 // Error handling middleware
-// app.use(errorHandler);
+app.use(errorHandler);
 export { app };

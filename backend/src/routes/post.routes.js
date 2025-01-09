@@ -27,6 +27,6 @@ router.route('/get-comments/:postId').get(verifyJWT, getPostComments);
 router.route('/delete-comment/:commentId').delete(verifyJWT, deleteComment);
 router.route('/bookmark-post/:postId').post(verifyJWT, bookmarkPost);
 router.route('/get-all-posts').get(verifyJWT, getAllPosts);
-router.route('/get-user-posts').get(verifyJWT, getUserPosts);
+router.route('/get-user-posts/:userId').post(verifyJWT, getUserPosts);
 
 export default router;

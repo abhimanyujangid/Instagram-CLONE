@@ -9,7 +9,7 @@ import sharp from "sharp";
 import path from "path";
 import Comment from '../models/comment.model.js';
 
-//=====================ADD NEW POST=====================
+//=====================create NEW POST=====================
 const createPost = asyncHandler(async (req, res) => {
     try {
         const { caption, description } = req.body;
@@ -92,7 +92,10 @@ const getAllPosts = asyncHandler(async (req, res) => {
 //=====================GET USER POSTS=====================
 const getUserPosts = asyncHandler(async (req, res) => {
     try {
-        const {_id: userId} = req.user;
+        const {userId} = req.params;
+        if(!userId){
+            throw new ApiError(404, "User not found.");
+        }
         const posts = await Post.find({ author: userId }).sort({ createdAt: -1 })
         .populate({ path: "author", select: "username, avatar" })
         .populate({ path: "comments",sort: { createdAt: -1 }, populate: { path: "author", select: "username, avatar" } });
@@ -158,14 +161,12 @@ const addComment = asyncHandler(async (req, res) => {
             throw new ApiError(404, "Post not found.");
         }
         const comment = await Comment.create({ author: userId, text, post: postId });
-        comment.populate({ path: "author", select: "username, avatar" });
+        await comment.populate({ path: "author", select: "username, avatar" });
+
         if (!comment) {
             throw new ApiError(500, "Error while adding comment it not found.");
         }
-        await comment.save();
-       
-
-        await post.push({ comments: comment._id });
+        await post.updateOne({ $push: { comments: comment._id } });
         await post.save();
         res.status(200).json(new ApiResponse(200, "Comment added successfully"));
     } catch (error) {
@@ -195,9 +196,12 @@ const deleteComment = asyncHandler(async (req, res) => {
         if (!comment) {
             throw new ApiError(404, "Comment not found or unauthorized to delete.");
         }
-        await Post.findByIdAndUpdate(comment.post, { $pull: { comments: comment._id } });      
-        res.status(200).json(new ApiResponse(200, "Comment deleted successfully"));
+        await Post.findByIdAndUpdate(comment.post, { $pull: { comments: comment._id } });
+        return res.status(200).json(new ApiResponse(200, "Comment deleted successfully"));
     } catch (error) {
+        if (error.name === "CastError") {
+            throw new ApiError(400, "Comment ID is invalid.");
+        }
         throw new ApiError(500, "Error while deleting comment");
     }
 });
