@@ -1,44 +1,7 @@
 import { ApiError, ApiClientInterface } from '../../services/apiClient';
 
 // Types for requests and responses
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  profilePicture: string;
-  bio: string;
-  website: string;
-  followersCount: number;
-  followingCount: number;
-  postsCount: number;
-  isFollowing: boolean;
-}
-
-export interface LoginCredentials {
-  email: string;
-  password: string;
-}
-
-export interface RegisterData {
-  username: string;
-  email: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  user: User;
-  token: string;
-}
-
-export interface RegisterResponse {
-  user: User;
-  token: string;
-}
-
-export interface UpdatePasswordData {
-  currentPassword: string;
-  newPassword: string;
-}
+import {User, LoginCredentials, RegisterData, LoginResponse, RegisterResponse, UpdatePasswordData} from '../../types/AuthTypes';
 
 export interface AuthServiceInterface {
   login(credentials: LoginCredentials): Promise<LoginResponse>;

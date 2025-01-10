@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { authService } from './AuthService';
-import { LoginCredentials, RegisterData, User } from './AuthService';
+import { LoginCredentials, RegisterData, User } from '../../types/AuthTypes';
 
 // Define the initial state
 interface AuthState {
