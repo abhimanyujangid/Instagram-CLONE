@@ -1,11 +1,9 @@
 import axios, { 
   AxiosInstance, 
   AxiosRequestConfig, 
-  AxiosResponse, 
   AxiosError 
 } from "axios";
 
-// Interface for the API client
 export interface ApiClientInterface {
   get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
   post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
@@ -13,7 +11,6 @@ export interface ApiClientInterface {
   delete<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
 }
 
-// Custom error class for API errors
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -25,7 +22,6 @@ export class ApiError extends Error {
   }
 }
 
-// Configuration interface
 export interface ApiClientConfig {
   baseURL: string;
   timeout?: number;
@@ -45,10 +41,13 @@ export class ApiClient implements ApiClientInterface {
       },
     });
 
-    // Add request interceptor
     this.instance.interceptors.request.use(
       (config) => {
-        // You can add common headers here, like authentication tokens
+        const token = localStorage.getItem('authToken');
+        if (token) {
+          config.headers = config.headers || {};
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
         return config;
       },
       (error) => {
@@ -56,9 +55,8 @@ export class ApiClient implements ApiClientInterface {
       }
     );
 
-    // Add response interceptor
     this.instance.interceptors.response.use(
-      (response) => response.data,
+      (response) => response,
       (error: AxiosError) => {
         if (error.response) {
           throw new ApiError(
@@ -118,7 +116,7 @@ export class ApiClient implements ApiClientInterface {
 
 // Create and export the API client instance
 const apiClient = new ApiClient({
-  baseURL: 'https://api.example.com', // Replace with your API base URL
+  baseURL: 'http://localhost:8001/api/v1',
 });
 
 export default apiClient;

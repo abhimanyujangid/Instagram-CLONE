@@ -1,32 +1,46 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import AuthService from "../auth/AuthService";
-import { User } from "../../types/AuthTypes";
+import { authService } from "../auth/AuthService";
+import { User, UpdatePasswordData } from "../../types/AuthTypes";
 
-const initialState = {
-  user: null as User | null,
+interface ProfileState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+}
+
+const initialState: ProfileState = {
+  user: null,
   loading: false,
-  error: null as string | null,
+  error: null,
 };
 
 // Async Thunks
 export const updateProfile = createAsyncThunk(
   "profile/update",
-  async (data: Partial<User>, thunkAPI) => {
+  async (data: Partial<User>, { rejectWithValue }) => {
     try {
-      return await AuthService.updateProfile(data);
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      const response = await authService.updateProfile(data);
+      return response;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred while updating profile');
     }
   }
 );
 
 export const updatePassword = createAsyncThunk(
   "profile/updatePassword",
-  async (data: { currentPassword: string; newPassword: string }, thunkAPI) => {
+  async (data: UpdatePasswordData, { rejectWithValue }) => {
     try {
-      return await AuthService.updatePassword(data);
-    } catch (error: any) {
-      return thunkAPI.rejectWithValue(error.response.data.message);
+      await authService.updatePassword(data);
+      return true;
+    } catch (error) {
+      if (error instanceof Error) {
+        return rejectWithValue(error.message);
+      }
+      return rejectWithValue('An unknown error occurred while updating password');
     }
   }
 );
@@ -35,9 +49,17 @@ export const updatePassword = createAsyncThunk(
 const profileSlice = createSlice({
   name: "profile",
   initialState,
-  reducers: {},
+  reducers: {
+    clearProfileError: (state) => {
+      state.error = null;
+    },
+    setUser: (state, action) => {
+      state.user = action.payload;
+    }
+  },
   extraReducers: (builder) => {
     builder
+      // Update Profile cases
       .addCase(updateProfile.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -45,23 +67,27 @@ const profileSlice = createSlice({
       .addCase(updateProfile.fulfilled, (state, { payload }) => {
         state.loading = false;
         state.user = payload;
+        state.error = null;
       })
-      .addCase(updateProfile.rejected, (state, { payload }) => {
+      .addCase(updateProfile.rejected, (state, action) => {
         state.loading = false;
-        state.error = payload as string;
+        state.error = action.payload as string;
       })
+      // Update Password cases
       .addCase(updatePassword.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(updatePassword.fulfilled, (state) => {
         state.loading = false;
+        state.error = null;
       })
-      .addCase(updatePassword.rejected, (state, { payload }) => {
+      .addCase(updatePassword.rejected, (state, action) => {
         state.loading = false;
-        state.error = payload as string;
+        state.error = action.payload as string;
       });
   },
 });
 
+export const { clearProfileError, setUser } = profileSlice.actions;
 export default profileSlice.reducer;

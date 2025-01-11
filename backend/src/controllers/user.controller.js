@@ -124,9 +124,12 @@ const login = asyncHandler(async (req, res) => {
     if ([username, email, password].some(field => !field)) {
         throw new ApiError(400, "Please provide all required fields.");
     }
+
     const user = await User.findOne({
-        $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() },{ isActive: true }]
+        $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }],
+        isActive: true 
     });
+
     if (!user) {
         throw new ApiError(404, "User not found.");
     }

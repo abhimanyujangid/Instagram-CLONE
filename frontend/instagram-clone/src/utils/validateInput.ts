@@ -1,9 +1,4 @@
-export const isValidPassword = (password: string) => {
-    const passwordRegex = new RegExp(
-        "^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[a-zA-Z0-9!@#$%^&*]{6,20}$"
-    );
-    return passwordRegex.test(password) && password.length >= 6 && password.length <= 20;
-};
+export const isValidPassword = (password: string) => password.length >= 6 && password.length <= 20;
 
 export const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

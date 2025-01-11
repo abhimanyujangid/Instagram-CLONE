@@ -4,12 +4,14 @@
 export interface LoginCredentials {
   email: string;
   password: string;
+  username: string;
 }
 
 export interface RegisterData {
   username: string;
   email: string;
   password: string;
+  fullName: string;
 }
 
 export interface LoginResponse {
@@ -51,3 +53,6 @@ export interface User {
   postsCount: number;
   isFollowing: boolean;
 }
+
+
+//

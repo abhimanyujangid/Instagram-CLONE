@@ -44,6 +44,7 @@ router.route('/current-user').get(verifyJWT, getCurrentUser);
 router.route('/all-users').get(verifyJWT, getAllUsers);
 router.route('/user/:userId').get(verifyJWT, getUser);
 router.route('/follow/:userId').post(verifyJWT, followOrUnfollowUser);
+
 // router.route('/forgot-password').post(forgotPassword);
 router.route('/update-profile').post(verifyJWT, upload.fields([
     {

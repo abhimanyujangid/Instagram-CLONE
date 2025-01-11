@@ -1,53 +1,121 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
-import { useDispatch } from "react-redux";
 import { login } from "../../features/auth/authSlice";
+import { useAppDispatch, useAppSelector } from "../../hooks/useAuth";
+import { LoginCredentials } from "../../types/AuthTypes";
+import { ToastContainer, toast } from 'react-toastify';
+
+interface LoginForm extends LoginCredentials {
+  username?: string;
+}
+
 const Login: React.FC = () => {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState<LoginForm>({ 
+    email: "", 
+    password: "", 
+    username: "" 
+  });
 
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector(state => state.auth);
 
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    dispatch(login({ email, password }) as any);
+console.log(isAuthenticated)
+
+  useEffect(() => {
+    if (error) {
+      toast.error(error);
+    }
+  }, [error]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      toast.success('Login successful');
+    }
+  }, [isAuthenticated]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
   };
-  
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!form.email || !form.password) {
+      toast.error("Email and password are required");
+      return;
+    }
+
+    try {
+      await dispatch(login({ 
+        email: form.email, 
+        password: form.password,
+        username: form.username
+      })).unwrap();
+      toast.success('Login successful');
+    } catch (err) {
+      toast.error('Login failed');
+      console.error('Login failed:', err);
+    }
+  };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <Card className="w-full max-w-md p-6">
-        <CardHeader>
-          <CardTitle className="text-center">Login</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleLogin} className="space-y-4">
+    <Card className="w-[400px] mx-auto mt-8">
+      <CardHeader>
+        <CardTitle>Login</CardTitle>
+      </CardHeader>
+      <form onSubmit={handleSubmit}>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
             <Input
               type="email"
+              name="email"
               placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full"
+              value={form.email}
+              onChange={handleChange}
+              disabled={loading}
             />
+          </div>
+
+          <div className="space-y-2">
             <Input
               type="password"
+              name="password"
               placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full"
+              value={form.password}
+              onChange={handleChange}
+              disabled={loading}
             />
-            <Button type="submit" className="w-full">
-              Login
-            </Button>
-          </form>
+          </div>
+
+          <div className="space-y-2">
+            <Input
+              type="text"
+              name="username"
+              placeholder="Username (optional)"
+              value={form.username}
+              onChange={handleChange}
+              disabled={loading}
+            />
+          </div>
         </CardContent>
-        <CardFooter className="text-sm text-center">
-          Don’t have an account? <a href="/register" className="text-blue-500">Register</a>
+
+        <CardFooter>
+          <Button 
+            type="submit" 
+            className="w-full"
+            disabled={loading}
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </Button>
         </CardFooter>
-      </Card>
-    </div>
+      </form>
+    </Card>
   );
 };
 

@@ -1,6 +1,12 @@
 import { ApiError, ApiClientInterface } from '../../services/apiClient';
-// Types for requests and responses
-import {User, LoginCredentials, RegisterData, LoginResponse, RegisterResponse, UpdatePasswordData} from '../../types/AuthTypes';
+import {
+  User,
+  LoginCredentials,
+  RegisterData,
+  LoginResponse,
+  RegisterResponse,
+  UpdatePasswordData
+} from '../../types/AuthTypes';
 
 export interface AuthServiceInterface {
   login(credentials: LoginCredentials): Promise<LoginResponse>;
@@ -14,7 +20,12 @@ export class AuthService implements AuthServiceInterface {
 
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
-      return await this.apiClient.post<LoginResponse>('/auth/login', credentials);
+      const response = await this.apiClient.post<LoginResponse>('/users/login', credentials);
+      // Store token if it exists in the response
+      if ('token' in response) {
+        localStorage.setItem('authToken', response.token);
+      }
+      return response;
     } catch (error) {
       if (error instanceof ApiError) {
         switch (error.status) {
@@ -26,13 +37,21 @@ export class AuthService implements AuthServiceInterface {
             throw new Error(`Login failed: ${error.message}`);
         }
       }
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(`Login failed: ${error.message}`);
+      }
+      throw new Error('An unexpected error occurred during login');
     }
   }
 
   async register(data: RegisterData): Promise<RegisterResponse> {
     try {
-      return await this.apiClient.post<RegisterResponse>('/auth/register', data);
+      const response = await this.apiClient.post<RegisterResponse>('/users/register', data);
+      // Store token if it exists in the response
+      if ('token' in response) {
+        localStorage.setItem('authToken', response.token);
+      }
+      return response;
     } catch (error) {
       if (error instanceof ApiError) {
         switch (error.status) {
@@ -44,13 +63,17 @@ export class AuthService implements AuthServiceInterface {
             throw new Error(`Registration failed: ${error.message}`);
         }
       }
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(`Registration failed: ${error.message}`);
+      }
+      throw new Error('An unexpected error occurred during registration');
     }
   }
 
   async updateProfile(data: Partial<User>): Promise<User> {
     try {
-      return await this.apiClient.put<User>('/user/profile', data);
+      const response = await this.apiClient.put<User>('/user/profile', data);
+      return response;
     } catch (error) {
       if (error instanceof ApiError) {
         switch (error.status) {
@@ -62,7 +85,10 @@ export class AuthService implements AuthServiceInterface {
             throw new Error(`Profile update failed: ${error.message}`);
         }
       }
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(`Profile update failed: ${error.message}`);
+      }
+      throw new Error('An unexpected error occurred during profile update');
     }
   }
 
@@ -80,7 +106,10 @@ export class AuthService implements AuthServiceInterface {
             throw new Error(`Password update failed: ${error.message}`);
         }
       }
-      throw error;
+      if (error instanceof Error) {
+        throw new Error(`Password update failed: ${error.message}`);
+      }
+      throw new Error('An unexpected error occurred during password update');
     }
   }
 }
@@ -88,4 +117,3 @@ export class AuthService implements AuthServiceInterface {
 // Create and export the auth service instance
 import apiClient from "../../services/apiClient";
 export const authService = new AuthService(apiClient);
-export default authService;
