@@ -1,16 +1,6 @@
-export interface User {
-  id: number;
-  username: string;
-  email: string;
-  profilePicture: string;
-  bio: string;
-  website: string;
-  followersCount: number;
-  followingCount: number;
-  postsCount: number;
-  isFollowing: boolean;
-}
+//=====================Type definitions for auth features======================
 
+// Authservice Types  
 export interface LoginCredentials {
   email: string;
   password: string;
@@ -35,4 +25,29 @@ export interface RegisterResponse {
 export interface UpdatePasswordData {
   currentPassword: string;
   newPassword: string;
+}
+
+
+// AuthSlice Types
+
+export interface AuthState {
+  user: User | null;
+  loading: boolean;
+  error: string | null;
+  isAuthenticated: boolean;
+}
+
+
+// ProfileSlice Types
+export interface User {
+  id: number;
+  username: string;
+  email: string;
+  profilePicture: string;
+  bio: string;
+  website: string;
+  followersCount: number;
+  followingCount: number;
+  postsCount: number;
+  isFollowing: boolean;
 }

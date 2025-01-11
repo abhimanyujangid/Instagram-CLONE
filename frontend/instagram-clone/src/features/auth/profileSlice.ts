@@ -1,17 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import AuthService from "../auth/AuthService";
-export interface User {
-    id: number;
-    username: string;
-    email: string;
-    profilePicture: string;
-    bio: string;
-    website: string;
-    followersCount: number;
-    followingCount: number;
-    postsCount: number;
-    isFollowing: boolean;
-  }
+import { User } from "../../types/AuthTypes";
 
 const initialState = {
   user: null as User | null,
