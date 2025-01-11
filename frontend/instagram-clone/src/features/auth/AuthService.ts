@@ -1,5 +1,4 @@
 import { ApiError, ApiClientInterface } from '../../services/apiClient';
-
 // Types for requests and responses
 import {User, LoginCredentials, RegisterData, LoginResponse, RegisterResponse, UpdatePasswordData} from '../../types/AuthTypes';
 
