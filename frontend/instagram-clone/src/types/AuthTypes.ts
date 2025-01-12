@@ -16,7 +16,7 @@ export interface RegisterData {
 
 export interface LoginResponse {
   user: User;
-  token: string;
+  accessToken: string;
 }
 
 export interface RegisterResponse {

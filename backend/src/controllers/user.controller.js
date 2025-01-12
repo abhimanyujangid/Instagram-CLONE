@@ -139,8 +139,11 @@ const login = asyncHandler(async (req, res) => {
     }
 
     const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id);
-
-    const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+    const loggedInUser = await User.findById(user._id)
+        .select("-password -refreshToken")
+        .lean();
+    loggedInUser.accessToken = accessToken;
+    
 
     if (!loggedInUser) {
         throw new ApiError(500, "User not found.");
@@ -149,6 +152,7 @@ const login = asyncHandler(async (req, res) => {
     {
         httpOnly: true,
         secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
     };
 
     res

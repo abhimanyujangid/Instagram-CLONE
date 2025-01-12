@@ -21,9 +21,8 @@ export class AuthService implements AuthServiceInterface {
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
       const response = await this.apiClient.post<LoginResponse>('/users/login', credentials);
-      // Store token if it exists in the response
       if ('token' in response) {
-        localStorage.setItem('authToken', response.token);
+        localStorage.setItem('accessToken', response.token);
       }
       return response;
     } catch (error) {

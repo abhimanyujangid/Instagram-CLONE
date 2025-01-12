@@ -26,6 +26,7 @@ export interface ApiClientConfig {
   baseURL: string;
   timeout?: number;
   headers?: Record<string, string>;
+  withCredentials?: boolean;
 }
 
 export class ApiClient implements ApiClientInterface {
@@ -34,7 +35,8 @@ export class ApiClient implements ApiClientInterface {
   constructor(config: ApiClientConfig) {
     this.instance = axios.create({
       baseURL: config.baseURL,
-      timeout: config.timeout || 10000,
+      withCredentials: config.withCredentials ?? true,
+      timeout: config.timeout ?? 10000,
       headers: {
         'Content-Type': 'application/json',
         ...config.headers,
@@ -43,7 +45,7 @@ export class ApiClient implements ApiClientInterface {
 
     this.instance.interceptors.request.use(
       (config) => {
-        const token = localStorage.getItem('authToken');
+        const token = localStorage.getItem('accessToken');
         if (token) {
           config.headers = config.headers || {};
           config.headers['Authorization'] = `Bearer ${token}`;

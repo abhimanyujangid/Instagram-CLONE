@@ -10,9 +10,12 @@ const ProtectedRoutes = ({ children }: ProtectedRoutesProps) => {
     const isAuthenticated = useAppSelector(state => state.auth.isAuthenticated);
     const navigate = useNavigate();
     const location = useLocation();
+    const accessToken = localStorage.getItem('accessToken');
 
     useEffect(() => {
-        if (!isAuthenticated) {
+        if (!accessToken) {
+            console.log('No access token found');
+            // Redirect to login page if user is not authenticated
             navigate('/auth/login', {
                 state: { from: location.pathname }
             });
