@@ -22,7 +22,7 @@ export class AuthService implements AuthServiceInterface {
     try {
       const response = await this.apiClient.post<LoginResponse>('/users/login', credentials);
       if ('token' in response) {
-        localStorage.setItem('accessToken', response.token);
+        // localStorage.setItem('accessToken', response.token);
       }
       return response;
     } catch (error) {

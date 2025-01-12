@@ -8,6 +8,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/hook";
 import { inputData } from "../../constants/constant";
 import { RegisterData } from "../../types/AuthTypes";
 import {  toast } from 'react-toastify';
+import { RootState } from "../../store";
 const Register: React.FC = () => {
 
   const [form, setForm] = useState<RegisterData>({ email: "", password: "", username: "", fullName: "", confirmPassword: "" });
