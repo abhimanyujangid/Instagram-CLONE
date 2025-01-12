@@ -3,16 +3,15 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { login } from "../../features/auth/authSlice";
-import { useAppDispatch, useAppSelector } from "../../hooks/useAuth";
+import { useAppDispatch, useAppSelector } from "../../hooks/hook";
 import { LoginCredentials } from "../../types/AuthTypes";
 import { ToastContainer, toast } from 'react-toastify';
+import { useNavigate } from "react-router-dom";
 
-interface LoginForm extends LoginCredentials {
-  username?: string;
-}
 
 const Login: React.FC = () => {
-  const [form, setForm] = useState<LoginForm>({ 
+  const navigate = useNavigate();
+  const [form, setForm] = useState<LoginCredentials>({ 
     email: "", 
     password: "", 
     username: "" 
@@ -31,6 +30,7 @@ console.log(isAuthenticated)
 
   useEffect(() => {
     if (isAuthenticated) {
+      navigate('/profile');
       toast.success('Login successful');
     }
   }, [isAuthenticated]);
@@ -58,6 +58,7 @@ console.log(isAuthenticated)
         username: form.username
       })).unwrap();
       toast.success('Login successful');
+
     } catch (err) {
       toast.error('Login failed');
       console.error('Login failed:', err);
