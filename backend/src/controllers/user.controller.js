@@ -42,7 +42,7 @@ const registerUser = asyncHandler(async (req, res) => {
     });
 
     if (existingUser) {
-        return res.status(400).json(new ApiResponse(400,  "User already exists"));
+       throw new ApiError(400, "User already exists.");
     }
 
     // Initialize avatar and coverImage variables

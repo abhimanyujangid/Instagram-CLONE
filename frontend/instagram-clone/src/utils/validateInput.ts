@@ -1,4 +1,4 @@
-export const isValidPassword = (password: string) => password.length >= 6 && password.length <= 20;
+export const isValidPassword = (password: string) => password.length >= 3 && password.length <= 20;
 
 export const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

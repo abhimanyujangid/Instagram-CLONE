@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/componen
 import { login } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/hook";
 import { LoginCredentials } from "../../types/AuthTypes";
-import { ToastContainer, toast } from 'react-toastify';
+import {  toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
 
 
@@ -26,6 +26,7 @@ console.log(isAuthenticated)
     if (error) {
       toast.error(error);
     }
+    return ;
   }, [error]);
 
   useEffect(() => {
@@ -98,22 +99,23 @@ console.log(isAuthenticated)
             <Input
               type="text"
               name="username"
-              placeholder="Username (optional)"
+              placeholder="Username"
               value={form.username}
               onChange={handleChange}
               disabled={loading}
             />
           </div>
-        </CardContent>
-
-        <CardFooter>
+          {/* <div className="text-red-500 text-sm">{error}</div> */}
           <Button 
             type="submit" 
-            className="w-full"
             disabled={loading}
+            className="w-full"
           >
             {loading ? 'Logging in...' : 'Login'}
           </Button>
+        </CardContent>
+        <CardFooter>
+                    Create an account? <a href="/auth/register" className="text-blue-500 ml-2"> Register</a> 
         </CardFooter>
       </form>
     </Card>

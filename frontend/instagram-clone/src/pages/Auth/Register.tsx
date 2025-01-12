@@ -1,34 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../components/ui/card";
-import {isConfirmPasswordMatch, isValidEmail, isValidPassword} from "../../utils/validateInput";
-import { useDispatch } from "react-redux";
+import { isConfirmPasswordMatch, isValidEmail, isValidPassword } from "../../utils/validateInput";
 import { register } from "../../features/auth/authSlice";
-
+import { useAppDispatch, useAppSelector } from "../../hooks/hook";
+import { inputData } from "../../constants/constant";
+import { RegisterData } from "../../types/AuthTypes";
+import {  toast } from 'react-toastify';
 const Register: React.FC = () => {
 
-  const [form, setForm] = useState({ email: "", password: "", username: "", fullName: "", confirmPassword: "" });
-  const [error, setError] = useState("");
-  const dispatch = useDispatch();
+  const [form, setForm] = useState<RegisterData>({ email: "", password: "", username: "", fullName: "", confirmPassword: "" });
+  const [formError, setFormError] = useState("");
+  const dispatch = useAppDispatch();
+  const { loading, error, isAuthenticated } = useAppSelector((state: RootState) => state.auth);
 
-  const handleRegister = (e: React.FormEvent) => {
+  console.log("isAuthenticated",isAuthenticated)
+
+  const handelOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+  };
+
+    useEffect(() => {
+      if (error) {
+        toast.error(error);
+      }
+    }, [error]);
+  
+
+
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     const { email, password, username, fullName, confirmPassword } = form;
+    if (!email || !password || !username || !fullName || !confirmPassword) {
+      setFormError("All fields are required");
+      return;
+    }
     if (!isValidEmail(email)) {
-      setError("Invalid email");
+      setFormError("Invalid email");
       return;
     }
     if (!isValidPassword(password)) {
-      setError("Password must be at least 8 characters long ");
+      setFormError("Password must be at least 8 characters long ");
       return;
     }
     if (!isConfirmPasswordMatch(password, confirmPassword)) {
-      setError("Passwords do not match");
+      setFormError("Passwords do not match");
       return;
     }
     // Call backend API here
-   dispatch(register({ email: form.email, password: form.password , username: form.username, fullName: form.fullName}) as any);
+    try {
+      await dispatch(register({
+        email: form.email,
+        password: form.password,
+        username: form.username,
+        fullName: form.fullName,
+      } as RegisterData)).unwrap();
+      setFormError("");
+      toast.success('Register successful');
+      setForm({
+        email: "",
+        password: "",
+        username: "",
+        fullName: "",
+        confirmPassword: "",
+      })
+      
+    } catch (error) {
+      return;
+    }
+
   };
 
   return (
@@ -39,42 +81,18 @@ const Register: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
-          <Input
-              type="text"
-              placeholder="Full Name"
-              value={form?.fullName}
-              onChange={(e) => setForm({ ...form, fullName: e.target.value })}
-              className="w-full"
-            />
-            <Input
-              type="text"
-              placeholder="Username"
-              value={form?.username}
-              onChange={(e) => setForm({ ...form, username: e.target.value })}
-              className="w-full"
-            />
-            <Input
-              type="email"
-              placeholder="Email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full"
-            />
-            <Input
-              type="password"
-              placeholder="Password"
-              value={form?.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full"
-            />
-            <Input
-              type="password"
-              placeholder="Confirm Password"
-              value={form?.confirmPassword}
-              onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })}
-              className="w-full"
-            />
-            <div className="text-red-500 text-sm">{error}</div>
+            {inputData.map((input) => (
+              <Input
+                key={input.name}
+                type={input.type}
+                placeholder={input.placeholder}
+                name={input.name}
+                value={form[input.name as keyof typeof form]}
+                onChange={handelOnChange}
+                className="w-full"
+              />
+            ))}
+            {formError && <div className="text-red-500 text-sm">{formError}</div>}
             <Button type="submit" className="w-full">
               Register
             </Button>
