@@ -1,3 +1,5 @@
+import path from "path";
+
 const inputData = [
     {
       type: "text",
@@ -28,4 +30,13 @@ const inputData = [
   ];
 
 
-  export  {inputData};
+  const navData = [
+    { id: 1, name: "Home", icon: "HouseIcon", path : "/home" },
+    { id: 2, name: "Profile", icon: "UserIcon", path : "/profile" },
+    { id: 3, name: "Notifications", icon: "BellIcon", path : "/notifications" },
+    { id: 4, name: "Messages", icon: "MessageSquare", path : "/messages" },
+    { id: 5, name: "Search", icon: "Search", path : "/search" },
+    { id: 6, name: "Settings", icon: "Settings", path : "/settings" },
+  ];
+
+  export  {inputData, navData};

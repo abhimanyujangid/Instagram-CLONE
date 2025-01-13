@@ -5,6 +5,11 @@ import Register from '../pages/Auth/Register';
 import ProfilePage from '../pages/Profile/ProfilePage';
 import AuthLayout from '../layouts/AuthLayout';
 import ProtectedRoutes from './ProtectedRoutes';
+import MainLayout from '../layouts/MainLayout';
+import NotificationsPage from '../pages/Notifications/NotificationsPage';
+import ChatWindow from '../pages/Chat/ChatWindow';
+import Explore from '../pages/Explore/Explore';
+import Setting from '../pages/Setting/Setting';
 
 const AppRoutes = () => (
   <Router>
@@ -17,12 +22,6 @@ const AppRoutes = () => (
       </Route>
 
       {/* Protected routes */}
-      <Route 
-        path="/" 
-        element={
-            <HomePage />
-        } 
-      />
       {/* <Route 
         path="/profile" 
         element={
@@ -31,12 +30,17 @@ const AppRoutes = () => (
           </ProtectedRoutes>
         }
       /> */}
-        <Route 
-        path="/profile" 
-        element={
-            <ProfilePage />
-        }
-      />
+
+      <Route path="/" element={<MainLayout />} >
+      <Route index element={<Navigate to="home" replace />} />
+        <Route path="home" element={<HomePage />} />
+        <Route path="profile" element={<ProfilePage />} />
+        <Route path="notifications" element={<NotificationsPage />} />
+        <Route path="messages" element={<ChatWindow />} />
+        <Route path="search" element={<Explore />} />
+        <Route path="settings" element={<Setting/>} />
+      </Route>
+      
 
       {/* Catch all route */}
       <Route path="*" element={<Navigate to="/" replace />} />
