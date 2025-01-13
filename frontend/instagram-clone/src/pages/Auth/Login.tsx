@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardFooter, CardDescription } from "@/components/ui/card";
 import { login } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/hook";
 import { LoginCredentials } from "../../types/AuthTypes";
@@ -67,9 +67,11 @@ console.log(isAuthenticated)
   };
 
   return (
+    <div className="flex items-center justify-center min-h-screen w-screen bg-gray-300">
     <Card className="w-[400px] mx-auto mt-8">
       <CardHeader>
-        <CardTitle>Login</CardTitle>
+        <CardTitle className="text-center">Socialize</CardTitle>
+        <CardDescription className="text-center">Connect with friends and share moments</CardDescription>
       </CardHeader>
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -119,6 +121,7 @@ console.log(isAuthenticated)
         </CardFooter>
       </form>
     </Card>
+  </div>
   );
 };
 

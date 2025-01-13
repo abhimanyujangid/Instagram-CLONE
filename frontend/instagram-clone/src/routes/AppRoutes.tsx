@@ -20,17 +20,21 @@ const AppRoutes = () => (
       <Route 
         path="/" 
         element={
-          <ProtectedRoutes>
             <HomePage />
-          </ProtectedRoutes>
         } 
       />
-      <Route 
+      {/* <Route 
         path="/profile" 
         element={
           <ProtectedRoutes>
             <ProfilePage />
           </ProtectedRoutes>
+        }
+      /> */}
+        <Route 
+        path="/profile" 
+        element={
+            <ProfilePage />
         }
       />
 
