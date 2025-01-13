@@ -1,7 +1,7 @@
 
 ---
 
-# Instagram Clone - Frontend
+# SocialConnector- Frontend
 
 This is the frontend of an Instagram clone built using the **MERN stack** (MongoDB, Express, React, Node.js). The frontend is developed with **React**, **TypeScript**, **Vite**, **ShadCN UI**, **Redux**, and **Socket.IO**.
 
