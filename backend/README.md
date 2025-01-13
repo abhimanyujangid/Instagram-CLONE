@@ -2,7 +2,7 @@
 
 ---
 
-# Instagram Clone Backend
+# SocialConnector Clone Backend
 
 This is the backend codebase for an Instagram Clone project, developed using Node.js, Express, and MongoDB. It provides a RESTful API for managing user authentication, posts, messaging, and other core functionalities of a social media application.
 
