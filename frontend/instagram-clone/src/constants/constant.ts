@@ -1,6 +1,6 @@
 import path from "path";
 
-const inputData = [
+const inputDataRegister = [
     {
       type: "text",
       placeholder: "Full Name",
@@ -29,6 +29,12 @@ const inputData = [
     }
   ];
 
+   const inputLoginData = [
+      { name: "email", label: "Email", type: "email",placeholder:"Enter your email" },
+      { name: "password", label: "Password", type: "password",placeholder:"Enter your password" },
+      { name: "username", label: "Username", type: "text",placeholder:"Enter your username" }
+    ]
+
 
   const navData = [
     { id: 1, name: "Home", icon: "HouseIcon", path : "/home" },
@@ -39,4 +45,4 @@ const inputData = [
     { id: 6, name: "Settings", icon: "Settings", path : "/settings" },
   ];
 
-  export  {inputData, navData};
+  export  {inputDataRegister, navData,inputLoginData};

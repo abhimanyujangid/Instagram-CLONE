@@ -45,9 +45,10 @@ export const updatePassword = createAsyncThunk(
   }
 );
 
+
 // Slice
 const profileSlice = createSlice({
-  name: "profile",
+  name: "Home",
   initialState,
   reducers: {
     clearProfileError: (state) => {

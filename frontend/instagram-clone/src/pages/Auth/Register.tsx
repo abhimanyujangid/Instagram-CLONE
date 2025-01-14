@@ -5,7 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "../../comp
 import { isConfirmPasswordMatch, isValidEmail, isValidPassword } from "../../utils/validateInput";
 import { register } from "../../features/auth/authSlice";
 import { useAppDispatch, useAppSelector } from "../../hooks/hook";
-import { inputData } from "../../constants/constant";
+import { inputDataRegister } from "../../constants/constant";
 import { RegisterData } from "../../types/AuthTypes";
 import {  toast } from 'react-toastify';
 import { RootState } from "../../store";
@@ -82,7 +82,7 @@ const Register: React.FC = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleRegister} className="space-y-4">
-            {inputData.map((input) => (
+            {inputDataRegister.map((input) => (
               <Input
                 key={input.name}
                 type={input.type}

@@ -201,31 +201,37 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 });
 //=====================LOGOUT USER=====================
 const logout = asyncHandler(async (req, res) => {
-    const { _id: userId } = req.user; 
+    const { _id: userId } = req.user;
 
+    // Validate user ID
     if (!userId) {
         throw new ApiError(400, "User ID is required.");
     }
-        await User.findByIdAndUpdate(userId,
-        {
-            $set: { refreshToken: undefined }
-        },{
-            new: true,
-        }
+
+    // Clear refreshToken from the user's record
+    const user = await User.findByIdAndUpdate(
+        userId,
+        { $unset: { refreshToken: "" } }, 
+        { new: true }
     );
 
-    
-
-    // Clear the cookies from the client
-    const options = {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+    // If the user is not found, throw an error
+    if (!user) {
+        throw new ApiError(404, "User not found.");
     }
+
+    // Clear cookies from the client
+    const cookieOptions = {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production', 
+        sameSite: "Strict", 
+    };
+
     res
         .status(200)
-        .clearCookie('accessToken',options)
-        .clearCookie('refreshToken',options)
-        .json(new ApiResponse(200,{}, "User logged out successfully."));
+        .clearCookie("accessToken", cookieOptions)
+        .clearCookie("refreshToken", cookieOptions)
+        .json(new ApiResponse(200, {}, "User logged out successfully."));
 });
 //=====================FORGOT PASSWORD=====================
 const forgotPassword = asyncHandler(async (req, res) => { });
@@ -375,6 +381,12 @@ const reactivateAccount = asyncHandler(async (req, res) => {
 });
 //=====================GET CURRENT USER=====================
 const getCurrentUser = asyncHandler(async (req, res) => {
+    if (!req.user) {
+        throw new ApiError(404, "User not found.");
+    }
+    if (!req.user.isActive) {
+        throw new ApiError(401, "Account is deactivated.");
+    }
     return res.status(200).json(new ApiResponse(200, req.user,"User fetched successfully", req.user));
 });
 //=====================GET USERS=====================

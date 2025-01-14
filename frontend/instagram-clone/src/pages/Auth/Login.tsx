@@ -7,6 +7,7 @@ import { useAppDispatch, useAppSelector } from "../../hooks/hook";
 import { LoginCredentials } from "../../types/AuthTypes";
 import {  toast } from 'react-toastify';
 import { useNavigate } from "react-router-dom";
+import { inputLoginData } from "../../constants/constant";
 
 
 const Login: React.FC = () => {
@@ -19,8 +20,8 @@ const Login: React.FC = () => {
 
   const dispatch = useAppDispatch();
   const { loading, error, isAuthenticated } = useAppSelector(state => state.auth);
+ 
 
-console.log(isAuthenticated)
 
   useEffect(() => {
     if (error) {
@@ -29,13 +30,9 @@ console.log(isAuthenticated)
     return ;
   }, [error]);
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/profile');
-      toast.success('Login successful');
-    }
-  }, [isAuthenticated]);
 
+
+  // Form change handler
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({
@@ -44,6 +41,7 @@ console.log(isAuthenticated)
     }));
   };
 
+  // Form submit handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -58,6 +56,7 @@ console.log(isAuthenticated)
         password: form.password,
         username: form.username
       })).unwrap();
+      navigate('home');
       toast.success('Login successful');
 
     } catch (err) {
@@ -73,40 +72,23 @@ console.log(isAuthenticated)
         <CardTitle className="text-center">Socialize</CardTitle>
         <CardDescription className="text-center">Connect with friends and share moments</CardDescription>
       </CardHeader>
+      
+      {/* Form section start */}
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
+         {inputLoginData && inputLoginData.map((input,index) => (
+         <div className="space-y-2" key={index}>
             <Input
-              type="email"
-              name="email"
-              placeholder="Email"
-              value={form.email}
+              type={input.type}
+              name={input.name}
+              placeholder={input.placeholder}
+              value={form[input.name as keyof typeof form]}
               onChange={handleChange}
               disabled={loading}
             />
-          </div>
+          </div>)) }
 
-          <div className="space-y-2">
-            <Input
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={form.password}
-              onChange={handleChange}
-              disabled={loading}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Input
-              type="text"
-              name="username"
-              placeholder="Username"
-              value={form.username}
-              onChange={handleChange}
-              disabled={loading}
-            />
-          </div>
+          
           {/* <div className="text-red-500 text-sm">{error}</div> */}
           <Button 
             type="submit" 

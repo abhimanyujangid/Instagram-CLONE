@@ -3,7 +3,7 @@ import axios, {
   AxiosRequestConfig, 
   AxiosError 
 } from "axios";
-
+import {ApiClientConfig} from "../types/ApiClient";
 export interface ApiClientInterface {
   get<T>(url: string, config?: AxiosRequestConfig): Promise<T>;
   post<T>(url: string, data?: any, config?: AxiosRequestConfig): Promise<T>;
@@ -22,12 +22,7 @@ export class ApiError extends Error {
   }
 }
 
-export interface ApiClientConfig {
-  baseURL: string;
-  timeout?: number;
-  headers?: Record<string, string>;
-  withCredentials?: boolean;
-}
+
 
 export class ApiClient implements ApiClientInterface {
   private instance: AxiosInstance;

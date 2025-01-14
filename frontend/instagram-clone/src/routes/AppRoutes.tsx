@@ -22,17 +22,9 @@ const AppRoutes = () => (
       </Route>
 
       {/* Protected routes */}
-      {/* <Route 
-        path="/profile" 
-        element={
-          <ProtectedRoutes>
-            <ProfilePage />
-          </ProtectedRoutes>
-        }
-      /> */}
 
-      <Route path="/" element={<MainLayout />} >
-      <Route index element={<Navigate to="home" replace />} />
+      <Route path="/" element={ <ProtectedRoutes><MainLayout /></ProtectedRoutes>} >
+      <Route index element={ <ProtectedRoutes><Navigate to="home" replace /></ProtectedRoutes>} />
         <Route path="home" element={<HomePage />} />
         <Route path="profile" element={<ProfilePage />} />
         <Route path="notifications" element={<NotificationsPage />} />

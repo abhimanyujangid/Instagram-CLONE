@@ -18,11 +18,12 @@ export interface AuthServiceInterface {
 export class AuthService implements AuthServiceInterface {
   constructor(private apiClient: ApiClientInterface) {}
 
+  // login
   async login(credentials: LoginCredentials): Promise<LoginResponse> {
     try {
       const response = await this.apiClient.post<LoginResponse>('/users/login', credentials);
-      if ('token' in response) {
-        // localStorage.setItem('accessToken', response.token);
+      if (response) {
+        localStorage.setItem('accessToken', response?.data?.accessToken);
       }
       return response;
     } catch (error) {
@@ -43,6 +44,7 @@ export class AuthService implements AuthServiceInterface {
     }
   }
 
+  // register
   async register(data: RegisterData): Promise<RegisterResponse> {
     try {
       const response = await this.apiClient.post<RegisterResponse>('/users/register', data);
@@ -65,6 +67,50 @@ export class AuthService implements AuthServiceInterface {
     }
   }
 
+// get logged in user
+  async getLoggedInUser(): Promise<User> {
+    try {
+      const response = await this.apiClient.get<User>('/users/current-user');
+      return response;
+    } catch (error) {
+      if (error instanceof ApiError) {
+        switch (error.status) {
+          case 401:
+            throw new Error('Unauthorized: Please log in to access this resource.');
+          case 404:
+            throw new Error('User not found.');
+          default:
+            throw new Error(`Failed to fetch user: ${error.message}`);
+        }
+      }
+      if (error instanceof Error) {
+        throw new Error(`Failed to fetch user: ${error.message}`);
+      }
+      throw new Error('An unexpected error occurred while fetching the logged-in user');
+    }
+  }
+// logout
+async logout(): Promise<void> {
+  try {
+    const response = await this.apiClient.post<void>('/users/logout');
+    return response;
+  } catch (error) {
+    if (error instanceof ApiError) {
+      switch (error.status) {
+        case 401:
+          throw new Error('Unauthorized: Please log in to access this resource.');
+        default:
+          throw new Error(`Logout failed: ${error.message}`);
+      }
+    }
+    if (error instanceof Error) {
+      throw new Error(`Logout failed: ${error.message}`);
+    }
+    throw new Error('An unexpected error occurred during logout');
+  }
+}
+
+  // update profile
   async updateProfile(data: Partial<User>): Promise<User> {
     try {
       const response = await this.apiClient.put<User>('/user/profile', data);
@@ -86,6 +132,8 @@ export class AuthService implements AuthServiceInterface {
       throw new Error('An unexpected error occurred during profile update');
     }
   }
+
+
 
   async updatePassword(data: UpdatePasswordData): Promise<void> {
     try {
