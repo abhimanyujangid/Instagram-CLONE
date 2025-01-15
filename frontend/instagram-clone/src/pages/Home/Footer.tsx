@@ -8,7 +8,7 @@ import { toast } from "react-toastify";
 const Footer = () => {
   const dispatch = useAppDispatch()
   const { loading, error, isAuthenticated, user } = useAppSelector(state => state.auth);
-
+  const currentTheme = useAppSelector((state) => state.theme.currentTheme);
     const navigate = useNavigate()
     // const handelLogout = () => {
     //     dispatch(logoutUser());
@@ -18,7 +18,7 @@ const handelLogout = async () => {
    await apiClient.post('/users/logout'); 
   localStorage.removeItem('accessToken');
   navigate('/auth/login');
-  toast.success('Logout successful');
+  toast.success('Logout successful', { theme: currentTheme === 'dark' ? 'dark' : 'light' });
 }
 
   return (
@@ -29,11 +29,11 @@ const handelLogout = async () => {
                 <UserCircle className="w-10 h-10 text-neutral-400" />
                }
               <div className="ml-3">
-                <p className="text-sm font-medium text-neutral-700">{user?.message?.username}</p>
-                <p className="text-xs text-neutral-500">{user?.message?.email}</p>
+                <p className="font-semibold">{user?.message?.username}</p>
+                <p  >{user?.message?.email}</p>
               </div>
             </div>
-            <LogInIcon className="w-5 h-5 ml-auto text-neutral-500 cursor-pointer" onClick={handelLogout} />
+            <LogInIcon className={`w-5 h-5 ml-auto ${currentTheme === 'dark' ? 'text-white' : 'text-black'} cursor-pointer`} onClick={handelLogout} />
           </div>
   )
 }

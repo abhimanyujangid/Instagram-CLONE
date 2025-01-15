@@ -56,7 +56,7 @@ const MainLayout = () => {
         </div>
 
       </div>
-      <div className='home__right bg-gray-200 w-4/5 flex justify-center items-center'>
+      <div className={`${currentTheme === "dark" ? "bg-gray-900" : "bg-gray-100"} home__right w-4/5 h-full flex items-center justify-center`}>
         <Outlet />
       </div>
     </div>
