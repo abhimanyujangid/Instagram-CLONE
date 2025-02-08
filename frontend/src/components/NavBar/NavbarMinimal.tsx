@@ -4,14 +4,15 @@ import {
     IconDeviceDesktopAnalytics,
     IconFingerprint,
     IconGauge,
+    IconHandClick,
     IconHome2,
     IconLogout,
+    IconMoonStars,
     IconSettings,
-    IconSwitchHorizontal,
+    IconSun,
     IconUser,
 } from '@tabler/icons-react';
-import { Center, Stack, Tooltip, UnstyledButton } from '@mantine/core';
-// import { MantineLogo } from '@mantinex/mantine-logo';
+import { Center, Stack, Tooltip, UnstyledButton, useMantineColorScheme } from '@mantine/core';
 import classes from './NavbarMinimal.module.css';
 
 interface NavbarLinkProps {
@@ -43,6 +44,11 @@ const mockdata = [
 
 export function NavbarMinimal() {
     const [active, setActive] = useState(2);
+    const { colorScheme, setColorScheme } = useMantineColorScheme();
+
+    const toggleColorScheme = () => {
+        setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+    };
 
     const links = mockdata.map((link, index) => (
         <NavbarLink
@@ -56,7 +62,7 @@ export function NavbarMinimal() {
     return (
         <nav className={classes.navbar}>
             <Center>
-                {/* <MantineLogo type="mark" size={30} /> */}
+                <IconHandClick />
             </Center>
 
             <div className={classes.navbarMain}>
@@ -66,7 +72,12 @@ export function NavbarMinimal() {
             </div>
 
             <Stack justify="center" gap={0}>
-                <NavbarLink icon={IconSwitchHorizontal} label="Change account" />
+                {/* Light/Dark Mode Toggle */}
+                <NavbarLink
+                    icon={colorScheme === 'dark' ? IconSun : IconMoonStars}
+                    label="Toggle theme"
+                    onClick={toggleColorScheme}
+                />
                 <NavbarLink icon={IconLogout} label="Logout" />
             </Stack>
         </nav>
