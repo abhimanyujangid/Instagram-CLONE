@@ -1,11 +1,13 @@
+import { NavbarMinimal } from '@/components/NavBar/NavbarMinimal';
 import { ColorSchemeToggle } from '../components/ColorSchemeToggle/ColorSchemeToggle';
 import { Welcome } from '../components/Welcome/Welcome';
 
 export function HomePage() {
   return (
     <>
-      <Welcome />
-      <ColorSchemeToggle />
+      {/* <Welcome />
+      <ColorSchemeToggle /> */}
+      <NavbarMinimal/>
     </>
   );
 }
