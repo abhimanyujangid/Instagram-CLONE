@@ -134,7 +134,7 @@ const login = asyncHandler(async (req, res) => {
         throw new ApiError(404, "User not found.");
     }
 
-    if (!await user.isPasswordCorrect(password)) {
+    if (!(await user.isPasswordCorrect(password))) {
         throw new ApiError(401, "Incorrect password.");
     }
 
