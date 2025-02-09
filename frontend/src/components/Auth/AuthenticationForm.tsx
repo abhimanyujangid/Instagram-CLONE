@@ -20,6 +20,7 @@ import { upperFirst, useToggle } from '@mantine/hooks';
 import { GoogleButton } from './GoogleButton';
 import { TwitterButton } from './TwitterButton';
 import { useNavigate } from 'react-router-dom';
+import { PasswordReq } from '../PasswordReq';
 
 export function AuthenticationForm(props: PaperProps) {
   const [type, toggle] = useToggle(['login', 'register']);
@@ -86,6 +87,7 @@ export function AuthenticationForm(props: PaperProps) {
             radius="md"
           />
 
+          {type === 'register' ? <PasswordReq /> :
           <PasswordInput
             required
             label="Password"
@@ -95,6 +97,7 @@ export function AuthenticationForm(props: PaperProps) {
             error={form.errors.password}
             radius="md"
           />
+}
 
           {type === 'register' && (
             <Checkbox

@@ -13,6 +13,7 @@ import {
 } from '@tabler/icons-react';
 import { Center, Stack, Tooltip, UnstyledButton, useMantineColorScheme } from '@mantine/core';
 import classes from './NavbarMinimal.module.css';
+import { useNavigate } from 'react-router-dom';
 
 interface NavbarLinkProps {
   icon: typeof IconHome2;
@@ -40,10 +41,17 @@ const mockdata = [
   { icon: IconSettings, label: 'Setting' },
 ];
 
+
+
 export function NavbarMinimal({ setSelectNav }: { setSelectNav: (label: string) => void }) {
   const [active, setActive] = useState(0); 
   const { colorScheme, setColorScheme } = useMantineColorScheme();
+  const navigate = useNavigate();
 
+
+  const handelLogout = () => {
+    navigate('/auth');
+  }
   const toggleColorScheme = () => {
     setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
   };
@@ -79,7 +87,7 @@ export function NavbarMinimal({ setSelectNav }: { setSelectNav: (label: string) 
           label="Toggle theme"
           onClick={toggleColorScheme}
         />
-        <NavbarLink icon={IconLogout} label="Logout" />
+        <NavbarLink icon={IconLogout} label="Logout" onClick={handelLogout} />
       </Stack>
     </nav>
   );
