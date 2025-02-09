@@ -1,85 +1,86 @@
 import { useState } from 'react';
 import {
-    IconCalendarStats,
-    IconDeviceDesktopAnalytics,
-    IconFingerprint,
-    IconGauge,
-    IconHandClick,
-    IconHome2,
-    IconLogout,
-    IconMoonStars,
-    IconSettings,
-    IconSun,
-    IconUser,
+  IconUserBitcoin,
+  IconHandClick,
+  IconHome2,
+  IconLogout,
+  IconMoonStars,
+  IconSettings,
+  IconSun,
+  IconMessage,
+  IconBell,
+  IconSearch,
 } from '@tabler/icons-react';
 import { Center, Stack, Tooltip, UnstyledButton, useMantineColorScheme } from '@mantine/core';
 import classes from './NavbarMinimal.module.css';
 
 interface NavbarLinkProps {
-    icon: typeof IconHome2;
-    label: string;
-    active?: boolean;
-    onClick?: () => void;
+  icon: typeof IconHome2;
+  label: string;
+  active?: boolean;
+  onClick?: () => void;
 }
 
 function NavbarLink({ icon: Icon, label, active, onClick }: NavbarLinkProps) {
-    return (
-        <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
-            <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined}>
-                <Icon size={20} stroke={1.5} />
-            </UnstyledButton>
-        </Tooltip>
-    );
+  return (
+    <Tooltip label={label} position="right" transitionProps={{ duration: 0 }}>
+      <UnstyledButton onClick={onClick} className={classes.link} data-active={active || undefined}>
+        <Icon size={20} stroke={1.5} />
+      </UnstyledButton>
+    </Tooltip>
+  );
 }
 
 const mockdata = [
-    { icon: IconHome2, label: 'Home' },
-    { icon: IconGauge, label: 'Dashboard' },
-    { icon: IconDeviceDesktopAnalytics, label: 'Analytics' },
-    { icon: IconCalendarStats, label: 'Releases' },
-    { icon: IconUser, label: 'Account' },
-    { icon: IconFingerprint, label: 'Security' },
-    { icon: IconSettings, label: 'Settings' },
+  { icon: IconHome2, label: 'Home' },
+  { icon: IconUserBitcoin, label: 'Profile' },
+  { icon: IconMessage, label: 'Message' },
+  { icon: IconBell, label: 'Notification' },
+  { icon: IconSearch, label: 'Explore' },
+  { icon: IconSettings, label: 'Setting' },
 ];
 
-export function NavbarMinimal() {
-    const [active, setActive] = useState(2);
-    const { colorScheme, setColorScheme } = useMantineColorScheme();
+export function NavbarMinimal({ setSelectNav }: { setSelectNav: (label: string) => void }) {
+  const [active, setActive] = useState(0); 
+  const { colorScheme, setColorScheme } = useMantineColorScheme();
 
-    const toggleColorScheme = () => {
-        setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
-    };
+  const toggleColorScheme = () => {
+    setColorScheme(colorScheme === 'dark' ? 'light' : 'dark');
+  };
 
-    const links = mockdata.map((link, index) => (
+  const handleSelectNav = (index: number, label: string) => {
+    setActive(index);
+    setSelectNav(label);
+  };
+
+  return (
+    <nav className={classes.navbar}>
+      <Center>
+        <IconHandClick />
+      </Center>
+
+      <div className={classes.navbarMain}>
+        <Stack justify="center" gap={0}>
+          {mockdata.map((link, index) => (
+            <NavbarLink
+              {...link}
+              key={link.label}
+              active={index === active}
+              onClick={() => handleSelectNav(index, link.label)}
+            />
+          ))}
+        </Stack>
+      </div>
+
+      <Stack justify="center" gap={0}>
+        {/* Light/Dark Mode Toggle */}
         <NavbarLink
-            {...link}
-            key={link.label}
-            active={index === active}
-            onClick={() => setActive(index)}
+          icon={colorScheme === 'dark' ? IconSun : IconMoonStars}
+          label="Toggle theme"
+          onClick={toggleColorScheme}
         />
-    ));
-
-    return (
-        <nav className={classes.navbar}>
-            <Center>
-                <IconHandClick />
-            </Center>
-
-            <div className={classes.navbarMain}>
-                <Stack justify="center" gap={0}>
-                    {links}
-                </Stack>
-            </div>
-
-            <Stack justify="center" gap={0}>
-                {/* Light/Dark Mode Toggle */}
-                <NavbarLink
-                    icon={colorScheme === 'dark' ? IconSun : IconMoonStars}
-                    label="Toggle theme"
-                    onClick={toggleColorScheme}
-                />
-                <NavbarLink icon={IconLogout} label="Logout" />
-            </Stack>
-        </nav>
-    );
+        <NavbarLink icon={IconLogout} label="Logout" />
+      </Stack>
+    </nav>
+  );
 }
